@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage:
-#   ./compress_seeds.sh /scratch/groups/ogozani/alphafold3/output/human_test_set
+#   ./utils/compress_seeds.sh /scratch/groups/ogozani/alphafold3/output/human_test_set
 #
 # Tunables via env:
 #   THREADS (default 8)            # pigz threads
@@ -9,6 +9,10 @@
 #   PARALLEL_DIRS (default 1)      # process N runs at once (use >1 if gzip/none)
 
 set -euo pipefail
+
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 ROOT="${1:-/scratch/groups/ogozani/alphafold3/output/human_test_set}"
 THREADS="${THREADS:-4}"

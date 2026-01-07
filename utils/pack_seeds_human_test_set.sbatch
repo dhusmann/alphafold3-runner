@@ -8,5 +8,10 @@
 #SBATCH --time=12:00:00
 
 set -euo pipefail
+
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 cd /scratch/groups/ogozani/alphafold3
-THREADS=2 PARALLEL_DIRS=16 ./compress_seeds.sh output/human_test_set
+THREADS=2 PARALLEL_DIRS=16 "$REPO_ROOT/utils/compress_seeds.sh" output/human_test_set

@@ -17,6 +17,10 @@
 
 set -euo pipefail
 
+# Script location handling - supports being called from repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Configuration
 BASE_DIR="/scratch/groups/ogozani/alphafold3"
 JOBS_DIR="${BASE_DIR}/jobs"

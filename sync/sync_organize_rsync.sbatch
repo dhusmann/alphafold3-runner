@@ -16,10 +16,11 @@ set -euo pipefail
 
 # Configuration
 BASE_DIR="/scratch/groups/ogozani/alphafold3"
-SCRIPT_DIR="$BASE_DIR"
-RSYNC_WORKER="${SCRIPT_DIR}/sync_organize_rsync.sh"
-JOB_DISCOVERY="${SCRIPT_DIR}/sync_job_discovery.sh"
-CONFIG_FILE="${SCRIPT_DIR}/sync_parallel.conf"
+# SYNC_SCRIPT_DIR should be passed via environment, or derive from sbatch location
+SYNC_SCRIPT_DIR="${SYNC_SCRIPT_DIR:-/scratch/users/dhusmann/alphafold3/alphafold3-runner/sync}"
+RSYNC_WORKER="${SYNC_SCRIPT_DIR}/sync_organize_rsync.sh"
+JOB_DISCOVERY="${SYNC_SCRIPT_DIR}/sync_job_discovery.sh"
+CONFIG_FILE="${SYNC_SCRIPT_DIR}/sync_parallel.conf"
 LOG_DIR="${BASE_DIR}/logs"
 
 # Ensure we're in the base directory

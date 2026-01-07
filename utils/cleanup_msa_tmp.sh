@@ -2,6 +2,10 @@
 
 # Script to clean up temporary partition files after MSA jobs complete
 
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 AF3_BASE_DIR="/scratch/groups/ogozani/alphafold3"
 
 # Colors for output

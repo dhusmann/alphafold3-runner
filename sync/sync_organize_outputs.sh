@@ -16,13 +16,16 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# Script location handling - supports being called from repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Base directories
 BASE_DIR="/scratch/groups/ogozani/alphafold3"
 JOBS_DIR="${BASE_DIR}/jobs"
 OUTPUT_DIR="${BASE_DIR}/output"
-SCRIPT_DIR="$BASE_DIR"
 
-# Required scripts
+# Required scripts - now in sync/ directory
 JOB_DISCOVERY="${SCRIPT_DIR}/sync_job_discovery.sh"
 RSYNC_SBATCH="${SCRIPT_DIR}/sync_organize_rsync.sbatch"
 MSA_SBATCH="${SCRIPT_DIR}/archive_msa_data.sbatch"
@@ -192,6 +195,8 @@ submit_rsync_job() {
     export SYNC_JOBS_LIST="$JOBS_LIST"
     export SYNC_TOTAL_JOBS="$TOTAL_JOBS"
     export SYNC_JOBS_PER_TASK="$JOBS_PER_TASK"
+    export SYNC_SCRIPT_DIR="$SCRIPT_DIR"
+    export REPO_ROOT="$REPO_ROOT"
     
     # Submit the rsync array job
     local rsync_job_id

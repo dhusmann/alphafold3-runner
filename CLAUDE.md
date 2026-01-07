@@ -24,23 +24,37 @@ This is a high-throughput AlphaFold3 prediction project with 13,700+ methyltrans
 - Any files in `/tmp/tmp.*` patterns used by `mktemp` in scripts
 - Always ask user before removing any .tmp files
 
+## Directory Structure
+
+```
+alphafold3-runner/
+├── core/               # Core pipeline scripts
+├── sync/               # Output sync scripts
+├── monitoring/         # Status & monitoring
+├── utils/              # Cleanup & utilities
+├── tools/              # Helper tools
+├── docs/               # Documentation
+├── createAF3query*.sh  # Query creation (top-level)
+└── README.md
+```
+
 ## Main Workflow Scripts
 
-### sync_all.sh - Primary Entry Point
+### sync/sync_all.sh - Primary Entry Point
 - **Fully automated** - no confirmation prompts
 - Orchestrates entire workflow: local processing + Google Drive sync
 - Options: `--dry-run`, `--quiet`, `--local-only`
 
-### sync_organize_outputs.sh - Local Processing Orchestrator
+### sync/sync_organize_outputs.sh - Local Processing Orchestrator
 - Submits SLURM array jobs for parallel operations
 - Dependencies: rsync → MSA archiving → seed compression → Google Drive
 - Never runs heavy operations on login node
 
-### Key Worker Scripts
-- `sync_organize_rsync.sh` - Parallel rsync using GNU parallel
-- `archive_msa_data.sh` - MSA deduplication and archiving (fixed hanging issues)
-- `compress_seeds_array.sbatch` - Parallel seed compression
-- `rclone_to_gdrive.sh` - Complete backup with deterministic filter rules
+### Key Worker Scripts (in sync/)
+- `sync/sync_organize_rsync.sh` - Parallel rsync using GNU parallel
+- `sync/archive_msa_data.sh` - MSA deduplication and archiving (fixed hanging issues)
+- `sync/compress_seeds_array.sbatch` - Parallel seed compression
+- `sync/rclone_to_gdrive.sh` - Complete backup with deterministic filter rules
 
 ## Organization Pattern Maintained
 ```
@@ -104,6 +118,23 @@ output/
 - **Large job counts**: Increase `JOBS_PER_TASK` in `sync_parallel.conf`
 - **Resource limits**: Reduce `MAX_ARRAY_TASKS` and `PARALLEL_WORKERS`
 - **Testing**: Set `MAX_JOBS_LIMIT` environment variable
+
+## Core Pipeline Scripts (in core/)
+- `core/launch_af3.sh` - Pipeline entry point (starts 48-hour automation)
+- `core/af3_48hr_cycle.sh` - Handles periodic execution
+- `core/batch_reuse_msa.py` - Identifies and reuses existing MSAs
+- `core/submit_msa_arrays.sh` - Distributes MSA jobs across partitions
+- `core/submit_msa_array.sh` - Runs individual MSA generation
+- `core/submit_dist.sh` - Manages GPU job distribution
+- `core/submit_gpu.sh` - Runs individual GPU inference
+
+## Monitoring Scripts (in monitoring/)
+- `monitoring/pipeline_status.sh` - Quick dashboard view
+- `monitoring/pipeline_summary.sh` - Complete pipeline overview
+- `monitoring/monitor_msa_arrays.sh` - Monitors MSA array jobs
+- `monitoring/get_job_status.sh` - Reports job stages and seeds
+- `monitoring/check_sync_status.sh` - Shows sync readiness
+- `monitoring/check_rclone_status.sh` - Monitor rclone SLURM jobs
 
 ## Monitoring Commands
 ```bash

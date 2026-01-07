@@ -38,124 +38,166 @@ submit_dist.sh ─────────────→ GPU inference (up to 4
     └── Every 2 hours via af3_48hr_cycle.sh (24 cycles)
 ```
 
+## Directory Structure
+
+```
+alphafold3-runner/
+├── core/               # Core pipeline scripts
+│   ├── batch_reuse_msa.py
+│   ├── submit_msa_arrays.sh
+│   ├── submit_msa_array.sh
+│   ├── submit_dist.sh
+│   ├── submit_gpu.sh
+│   ├── launch_af3.sh
+│   └── af3_48hr_cycle.sh
+├── sync/               # Output sync scripts
+│   ├── sync_all.sh
+│   ├── sync_organize_outputs.sh
+│   ├── sync_organize_rsync.sh
+│   ├── sync_organize_rsync.sbatch
+│   ├── archive_msa_data.sh
+│   ├── archive_msa_data.sbatch
+│   ├── compress_seeds_array.sbatch
+│   ├── rclone_to_gdrive.sh
+│   └── rclone_retry.sh
+├── monitoring/         # Status & monitoring
+│   ├── pipeline_status.sh
+│   ├── pipeline_summary.sh
+│   ├── monitor_msa_arrays.sh
+│   ├── get_job_status.sh
+│   ├── get_job_status_detailed.sh
+│   ├── check_sync_status.sh
+│   └── check_rclone_status.sh
+├── utils/              # Cleanup & utilities
+│   ├── cleanup_msa_tmp.sh
+│   ├── clean_output_dir.sh
+│   ├── compress_seeds.sh
+│   └── pipeline_quickstart.sh
+├── tools/              # Helper tools
+├── docs/               # Documentation
+├── createAF3query*.sh  # Query creation (top-level)
+└── README.md
+```
+
 ## Components
 
-### Core Scripts
+### Core Scripts (`core/`)
 
-1. **`batch_reuse_msa.py`** - MSA reuse and job triage
+1. **`core/batch_reuse_msa.py`** - MSA reuse and job triage
    - Scans all jobs to identify which can reuse existing MSAs
    - Creates `msa_array_jobs.csv` for jobs needing fresh MSAs
    - Creates `waiting_for_msa.csv` for dependent jobs
 
-2. **`submit_msa_arrays.sh`** - MSA array job distribution
+2. **`core/submit_msa_arrays.sh`** - MSA array job distribution
    - Splits jobs between `normal` and `hns` partitions
    - Handles jobs exceeding SLURM array limits (1000)
    - Creates persistent `.tmp` files for each partition
 
-3. **`submit_msa_array.sh`** - Individual MSA job execution
+3. **`core/submit_msa_array.sh`** - Individual MSA job execution
    - Runs MSA generation for a single job
    - Handles jobs in multiple directory locations
    - Updates central log file
 
-4. **`submit_dist.sh`** - GPU job distribution
+4. **`core/submit_dist.sh`** - GPU job distribution
    - Integrates MSA reuse by running `batch_reuse_msa.py` first
    - Processes both main queue and waiting jobs
    - Respects GPU quota limits (default: 48)
    - Removes completed jobs from CSVs
 
-5. **`submit_gpu.sh`** - Individual GPU inference job
+5. **`core/submit_gpu.sh`** - Individual GPU inference job
    - Runs AlphaFold3 inference on GPU
    - Uses augmented JSON from MSA stage
    - Logs completion with timing information
 
-### Automation Scripts
-
-6. **`launch_af3.sh`** - Pipeline launcher
+6. **`core/launch_af3.sh`** - Pipeline launcher
    - Initiates the 48-hour cycling process
    - Submits first cycle job
 
-7. **`af3_48hr_cycle.sh`** - Periodic execution
+7. **`core/af3_48hr_cycle.sh`** - Periodic execution
    - Runs `submit_dist.sh` every 2 hours
    - Self-submits next cycle using SLURM dependencies
    - Sends completion email after 24 cycles
 
-### Monitoring Scripts
+### Monitoring Scripts (`monitoring/`)
 
-8. **`monitor_msa_arrays.sh`** - MSA job monitoring
+8. **`monitoring/monitor_msa_arrays.sh`** - MSA job monitoring
    - Shows job counts by partition
    - Displays recent failures
    - Provides useful SLURM commands
 
-9. **`get_job_status.sh`** - Comprehensive job status report
+9. **`monitoring/get_job_status.sh`** - Comprehensive job status report
    - Checks all jobs or specific jobs from CSV
    - Reports job stages (1: need MSA, 2: need GPU, 3: complete)
    - Lists completed seeds for Stage 3 jobs
    - Provides summary statistics
 
-10. **`get_job_status_detailed.sh`** - Extended status reporting
+10. **`monitoring/get_job_status_detailed.sh`** - Extended status reporting
     - All features of get_job_status.sh plus:
     - Export results to CSV
     - Filter by stage or seed
     - Show completion timestamps
     - Display job directory paths
 
-11. **`pipeline_status.sh`** - Quick pipeline dashboard
+11. **`monitoring/pipeline_status.sh`** - Quick pipeline dashboard
     - Shows if automation is running and current cycle
     - Displays MSA and GPU job counts
     - Provides quick progress estimate
     - Shows recent completions
 
-### Utility Scripts
+12. **`monitoring/check_sync_status.sh`** - Check sync readiness
+    - Shows which jobs have outputs ready
+    - Calculates total size to sync
+    - Reports excluded file sizes
 
-19. **`cleanup_msa_tmp.sh`** - Temporary file cleanup
-    - Removes partition `.tmp` files
-    - Warns if jobs are still running
+13. **`monitoring/check_rclone_status.sh`** - Monitor rclone jobs
+    - Shows active SLURM sync jobs
+    - Reports completed/failed syncs
+    - Checks for quota errors
 
-20. **`pipeline_quickstart.sh`** - Quick setup and validation
-    - Verifies all scripts are present
-    - Checks directory structure
-    - Makes scripts executable
+### Sync Scripts (`sync/`)
 
-21. **`test_seed_detection.sh`** - Debug seed detection
-    - Tests seed completion checking
-    - Helps troubleshoot Stage 3 jobs
+14. **`sync/sync_all.sh`** - Complete sync workflow
+    - Combines all sync steps
+    - Fully automated, no prompts
+    - Handles both local and cloud sync
 
-22. **`test_rclone_quota.sh`** - Test quota handling
-    - Verifies quota error detection
-    - Optional testing script
-
-### Output Sync Scripts
-
-13. **`sync_organize_outputs.sh`** - Sync and organize outputs
+15. **`sync/sync_organize_outputs.sh`** - Sync and organize outputs
     - Copies outputs from `jobs/` to `output/`
     - Excludes large `*_data.json` files
     - Organizes by project (arabidopsis, ecoli, yeast, etc.)
-    - Options for quiet/verbose output
 
-14. **`rclone_to_gdrive.sh`** - Submit Google Drive sync job
+16. **`sync/rclone_to_gdrive.sh`** - Submit Google Drive sync job
     - Submits SLURM job to hns partition
     - Handles Google Drive quota limits
     - Auto-reschedules if quota exceeded
     - Sends email notifications
 
-15. **`check_sync_status.sh`** - Check sync readiness
-    - Shows which jobs have outputs ready
-    - Calculates total size to sync
-    - Reports excluded file sizes
+### Utility Scripts (`utils/`)
 
-16. **`sync_all.sh`** - Complete sync workflow
-    - Combines all sync steps
-    - Includes safety prompts
-    - Handles both local and cloud sync
+17. **`utils/cleanup_msa_tmp.sh`** - Temporary file cleanup
+    - Removes partition `.tmp` files
+    - Warns if jobs are still running
 
-17. **`check_rclone_status.sh`** - Monitor rclone jobs
-    - Shows active SLURM sync jobs
-    - Reports completed/failed syncs
-    - Checks for quota errors
+18. **`utils/pipeline_quickstart.sh`** - Quick setup and validation
+    - Verifies all scripts are present
+    - Checks directory structure
+    - Makes scripts executable
 
-18. **`clean_output_dir.sh`** - Clean output directory
+19. **`utils/clean_output_dir.sh`** - Clean output directory
     - Shows current usage
     - Safely removes output directory
+
+### Query Creation Scripts (Top Level)
+
+20. **`createAF3query.sh`** - Create AF3 job directories
+    - Generates `alphafold_input.json` from FASTA files
+    - Supports PTMs and ligands
+
+21. **`createAF3query_withSMILES.sh`** - Create jobs with SMILES ligands
+    - Supports custom ligands via SMILES files
+
+22. **`createHTS-AF3query.sh`** - Create human test set queries
+    - Batch creation for human test set
 
 
 ## Updates (2025-09-17) — Single-Protein–Ligand Support
@@ -244,14 +286,19 @@ EEF1AKMT1-ACTB-SAH
 ### One-Time Setup
 ```bash
 # Make all scripts executable
-chmod +x *.sh *.py
+chmod +x core/*.sh sync/*.sh monitoring/*.sh utils/*.sh tools/*.sh
+chmod +x core/*.py tools/*.py
+chmod +x create*.sh
 
 # Verify python module is available
 ml python/3.9.0
 
-# Optional: Test the monitoring scripts
-./pipeline_status.sh              # Quick overview
-./get_job_status.sh -h           # See all options
+# Optional: Validate setup
+./utils/pipeline_quickstart.sh
+
+# Test the monitoring scripts
+./monitoring/pipeline_status.sh              # Quick overview
+./monitoring/get_job_status.sh -h           # See all options
 ```
 
 ### Running the Complete Pipeline
@@ -259,7 +306,7 @@ ml python/3.9.0
 #### Option 1: Automated 48-Hour Run (Recommended)
 ```bash
 # Start the automated pipeline (runs for 48 hours)
-./launch_af3.sh
+./core/launch_af3.sh
 ```
 
 **What happens automatically:**
@@ -284,41 +331,41 @@ tail -f af3_cycle_*.out
 #### Option 2: Manual Step-by-Step
 ```bash
 # 1. Analyze and reuse existing MSAs
-python batch_reuse_msa.py
+python core/batch_reuse_msa.py
 
 # 2. Submit MSA generation array jobs
-./submit_msa_arrays.sh msa_array_jobs.csv
+./core/submit_msa_arrays.sh msa_array_jobs.csv
 
 # 3. Monitor MSA progress
-./monitor_msa_arrays.sh
+./monitoring/monitor_msa_arrays.sh
 
 # 4. Submit GPU jobs (run periodically)
-./submit_dist.sh
+./core/submit_dist.sh
 
 # 5. Clean up temporary files when done
-./cleanup_msa_tmp.sh
+./utils/cleanup_msa_tmp.sh
 ```
 
 ### Monitoring
 
 ```bash
 # Quick pipeline overview
-./pipeline_status.sh
+./monitoring/pipeline_status.sh
 
 # Detailed job status
-./get_job_status.sh                           # All jobs
-./get_job_status.sh -f specific_jobs.csv      # Specific jobs
-./get_job_status.sh -s                        # Summary only
-./get_job_status.sh -v                        # Verbose with seed details
+./monitoring/get_job_status.sh                           # All jobs
+./monitoring/get_job_status.sh -f specific_jobs.csv      # Specific jobs
+./monitoring/get_job_status.sh -s                        # Summary only
+./monitoring/get_job_status.sh -v                        # Verbose with seed details
 
 # Advanced status reporting
-./get_job_status_detailed.sh -stage 2         # Show only Stage 2 jobs
-./get_job_status_detailed.sh -e report.csv    # Export to CSV
-./get_job_status_detailed.sh -seed 0          # Jobs with seed 0 complete
-./get_job_status_detailed.sh -p               # Show full paths
+./monitoring/get_job_status_detailed.sh -stage 2         # Show only Stage 2 jobs
+./monitoring/get_job_status_detailed.sh -e report.csv    # Export to CSV
+./monitoring/get_job_status_detailed.sh -seed 0          # Jobs with seed 0 complete
+./monitoring/get_job_status_detailed.sh -p               # Show full paths
 
 # Monitor MSA arrays specifically
-./monitor_msa_arrays.sh
+./monitoring/monitor_msa_arrays.sh
 
 # Check GPU jobs
 squeue -u $USER -p gpu
@@ -441,13 +488,13 @@ TOTAL_CYCLES=24  # 24 cycles × 2 hours = 48 hours
 **After Job Failures**:
 ```bash
 # Re-analyze MSA status
-python batch_reuse_msa.py
+python core/batch_reuse_msa.py
 
 # Resubmit failed MSA jobs
-./submit_msa_arrays.sh msa_array_jobs.csv
+./core/submit_msa_arrays.sh msa_array_jobs.csv
 
 # Continue GPU submissions
-./submit_dist.sh
+./core/submit_dist.sh
 ```
 
 **After System Interruption**:
@@ -456,8 +503,8 @@ python batch_reuse_msa.py
 squeue -u $USER
 
 # Clean up and restart
-./cleanup_msa_tmp.sh
-./launch_af3.sh
+./utils/cleanup_msa_tmp.sh
+./core/launch_af3.sh
 ```
 
 ## Best Practices
@@ -530,16 +577,16 @@ tail logged_folding_jobs.csv
 grep -c ",0$" logged_folding_jobs.csv
 
 # Clean up temporary MSA partition files
-./cleanup_msa_tmp.sh
+./utils/cleanup_msa_tmp.sh
 
 # Sync outputs to organized structure
-./sync_organize_outputs.sh
+./sync/sync_organize_outputs.sh
 
 # Upload to Google Drive (requires rclone setup)
-./rclone_to_gdrive.sh
+./sync/rclone_to_gdrive.sh
 
 # Or use the all-in-one sync script
-./sync_all.sh
+./sync/sync_all.sh
 ```
 
 ### Output Organization
@@ -557,26 +604,26 @@ The sync scripts organize outputs by project:
 ### Essential Commands
 ```bash
 # Start pipeline
-./launch_af3.sh
+./core/launch_af3.sh
 
 # Check status
-./pipeline_status.sh              # Quick overview
-./get_job_status.sh              # Detailed job stages
-./monitor_msa_arrays.sh          # MSA array status
+./monitoring/pipeline_status.sh              # Quick overview
+./monitoring/get_job_status.sh              # Detailed job stages
+./monitoring/monitor_msa_arrays.sh          # MSA array status
 
 # Debug specific jobs
-./get_job_status.sh -f jobs.csv -v
-./get_job_status_detailed.sh -stage 2 -p
+./monitoring/get_job_status.sh -f jobs.csv -v
+./monitoring/get_job_status_detailed.sh -stage 2 -p
 
 # Export results
-./get_job_status_detailed.sh -e job_report_$(date +%Y%m%d).csv
+./monitoring/get_job_status_detailed.sh -e job_report_$(date +%Y%m%d).csv
 
 # Sync outputs
-./check_sync_status.sh           # See what's ready
-./sync_all.sh                    # Complete sync workflow
-./sync_organize_outputs.sh -q    # Local sync (quiet mode)
-./rclone_to_gdrive.sh           # Submit Google Drive sync
-./check_rclone_status.sh        # Monitor sync progress
+./monitoring/check_sync_status.sh           # See what's ready
+./sync/sync_all.sh                          # Complete sync workflow
+./sync/sync_organize_outputs.sh -q          # Local sync (quiet mode)
+./sync/rclone_to_gdrive.sh                  # Submit Google Drive sync
+./monitoring/check_rclone_status.sh         # Monitor sync progress
 ```
 
 ### Job Stage Reference
@@ -594,4 +641,4 @@ For issues specific to:
 
 ---
 
-*Pipeline Version: 1.0 | Last Updated: August 2025*
+*Pipeline Version: 2.0 | Last Updated: January 2026 | Reorganized into subdirectories*

@@ -1,11 +1,15 @@
 #!/bin/bash
 
 # get_job_status.sh - Report status of AlphaFold3 jobs
-# Usage: 
-#   ./get_job_status.sh                    # Check all jobs in jobs/ directories
-#   ./get_job_status.sh -f jobs.csv        # Check specific jobs from CSV
-#   ./get_job_status.sh -s                # Summary only
-#   ./get_job_status.sh -v                # Verbose output
+# Usage:
+#   ./monitoring/get_job_status.sh                    # Check all jobs in jobs/ directories
+#   ./monitoring/get_job_status.sh -f jobs.csv        # Check specific jobs from CSV
+#   ./monitoring/get_job_status.sh -s                # Summary only
+#   ./monitoring/get_job_status.sh -v                # Verbose output
+
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Colors for output
 RED='\033[0;31m'

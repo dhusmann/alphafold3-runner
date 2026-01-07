@@ -2,6 +2,10 @@
 
 # AlphaFold3 Pipeline Quick Start and Validation Script
 
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 echo "====================================="
 echo "AlphaFold3 Pipeline Quick Start"
 echo "====================================="
@@ -45,31 +49,31 @@ check_dir() {
 # Check required scripts
 echo "Checking pipeline scripts:"
 SCRIPTS=(
-    "batch_reuse_msa.py"
-    "submit_msa_arrays.sh"
-    "submit_msa_array.sh"
-    "monitor_msa_arrays.sh"
-    "cleanup_msa_tmp.sh"
-    "submit_dist.sh"
-    "submit_gpu.sh"
-    "launch_af3.sh"
-    "af3_48hr_cycle.sh"
-    "get_job_status.sh"
-    "get_job_status_detailed.sh"
-    "pipeline_status.sh"
-    "pipeline_summary.sh"
-    "sync_organize_outputs.sh"
-    "rclone_to_gdrive.sh"
-    "check_sync_status.sh"
-    "check_rclone_status.sh"
-    "sync_all.sh"
-    "clean_output_dir.sh"
-    "test_seed_detection.sh"
+    "core/batch_reuse_msa.py"
+    "core/submit_msa_arrays.sh"
+    "core/submit_msa_array.sh"
+    "monitoring/monitor_msa_arrays.sh"
+    "utils/cleanup_msa_tmp.sh"
+    "core/submit_dist.sh"
+    "core/submit_gpu.sh"
+    "core/launch_af3.sh"
+    "core/af3_48hr_cycle.sh"
+    "monitoring/get_job_status.sh"
+    "monitoring/get_job_status_detailed.sh"
+    "monitoring/pipeline_status.sh"
+    "monitoring/pipeline_summary.sh"
+    "sync/sync_organize_outputs.sh"
+    "sync/rclone_to_gdrive.sh"
+    "monitoring/check_sync_status.sh"
+    "monitoring/check_rclone_status.sh"
+    "sync/sync_all.sh"
+    "utils/clean_output_dir.sh"
+    "tools/test_seed_detection.sh"
 )
 
 MISSING_SCRIPTS=0
 for script in "${SCRIPTS[@]}"; do
-    if ! check_file "$script"; then
+    if ! check_file "$REPO_ROOT/$script"; then
         ((MISSING_SCRIPTS++))
     fi
 done
@@ -108,7 +112,11 @@ echo
 # Make scripts executable
 if [ $MISSING_SCRIPTS -eq 0 ]; then
     echo "Making scripts executable..."
-    chmod +x *.sh *.py 2>/dev/null
+    chmod +x "$REPO_ROOT"/core/*.sh "$REPO_ROOT"/core/*.py 2>/dev/null
+    chmod +x "$REPO_ROOT"/sync/*.sh 2>/dev/null
+    chmod +x "$REPO_ROOT"/monitoring/*.sh 2>/dev/null
+    chmod +x "$REPO_ROOT"/utils/*.sh 2>/dev/null
+    chmod +x "$REPO_ROOT"/tools/*.sh 2>/dev/null
     echo -e "${GREEN}✓${NC} Scripts are now executable"
 else
     echo -e "${RED}Missing $MISSING_SCRIPTS scripts - cannot proceed${NC}"
@@ -121,18 +129,18 @@ echo "Quick Start Options:"
 echo "====================================="
 echo
 echo "1. Test MSA reuse (dry run):"
-echo "   python batch_reuse_msa.py --dry-run"
+echo "   python $REPO_ROOT/core/batch_reuse_msa.py --dry-run"
 echo
 echo "2. Start automated 48-hour pipeline:"
-echo "   ./launch_af3.sh"
+echo "   $REPO_ROOT/core/launch_af3.sh"
 echo
 echo "3. Run individual steps:"
-echo "   python batch_reuse_msa.py"
-echo "   ./submit_msa_arrays.sh"
-echo "   ./submit_dist.sh"
+echo "   python $REPO_ROOT/core/batch_reuse_msa.py"
+echo "   $REPO_ROOT/core/submit_msa_arrays.sh"
+echo "   $REPO_ROOT/core/submit_dist.sh"
 echo
 echo "4. Monitor progress:"
-echo "   ./monitor_msa_arrays.sh"
+echo "   $REPO_ROOT/monitoring/monitor_msa_arrays.sh"
 echo "   squeue -u \$USER"
 echo
 echo "====================================="

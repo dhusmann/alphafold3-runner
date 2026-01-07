@@ -3,6 +3,10 @@
 # pipeline_status.sh - Quick dashboard view of the AlphaFold3 pipeline
 # Shows current state of all components at a glance
 
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -143,5 +147,5 @@ else
 fi
 
 echo
-echo -e "${CYAN}For detailed status: ./get_job_status.sh${NC}"
-echo -e "${CYAN}For MSA monitoring:  ./monitor_msa_arrays.sh${NC}"
+echo -e "${CYAN}For detailed status: $REPO_ROOT/monitoring/get_job_status.sh${NC}"
+echo -e "${CYAN}For MSA monitoring:  $REPO_ROOT/monitoring/monitor_msa_arrays.sh${NC}"

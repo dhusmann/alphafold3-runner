@@ -20,7 +20,9 @@ set -euo pipefail
 
 # Configuration
 BASE_DIR="/scratch/groups/ogozani/alphafold3"
-SCRIPT_PATH="${BASE_DIR}/archive_msa_data.sh"
+# SYNC_SCRIPT_DIR should be passed via environment, or use default
+SYNC_SCRIPT_DIR="${SYNC_SCRIPT_DIR:-/scratch/users/dhusmann/alphafold3/alphafold3-runner/sync}"
+SCRIPT_PATH="${SYNC_SCRIPT_DIR}/archive_msa_data.sh"
 JOBS_DIR="${BASE_DIR}/jobs"
 LOG_DIR="${BASE_DIR}/logs"
 

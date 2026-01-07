@@ -16,8 +16,11 @@
 
 set -euo pipefail
 
-# Load configuration
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+# Script location handling - supports being called from repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Load configuration - sync_parallel.conf is in the sync/ directory
 CONFIG_FILE="${SCRIPT_DIR}/sync_parallel.conf"
 
 if [[ -f "$CONFIG_FILE" ]]; then

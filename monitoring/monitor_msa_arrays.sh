@@ -2,6 +2,10 @@
 
 # Utility script to monitor MSA array jobs
 
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Configuration
 AF3_BASE_DIR="/scratch/groups/ogozani/alphafold3"
 
@@ -76,7 +80,7 @@ echo "  Cancel specific array:     scancel <array_job_id>"
 echo "  View specific job output:  tail -f logs/<job_id>_<array_index>_MSA.out"
 echo "  View job details:          scontrol show job <job_id>"
 echo "  Clean up tmp files:        rm ${AF3_BASE_DIR}/msa_array_jobs_part*.tmp"
-echo "  Resubmit failed jobs:      Check logs and rerun submit_msa_arrays.sh with updated CSV"
+echo "  Resubmit failed jobs:      Check logs and rerun $REPO_ROOT/core/submit_msa_arrays.sh with updated CSV"
 
 # Check for tmp files
 echo -e "\n${BLUE}Temporary Files:${NC}"

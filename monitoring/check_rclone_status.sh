@@ -3,6 +3,10 @@
 # check_rclone_status.sh - Check status of rclone sync jobs
 # Shows active, completed, and failed rclone jobs
 
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -104,5 +108,5 @@ fi
 echo -e "${BLUE}Quick Actions:${NC}"
 echo "  View active job output:  tail -f logs/Rclone_<job_id>.out"
 echo "  Cancel sync job:         scancel <job_id>"
-echo "  Submit new sync:         ./rclone_to_gdrive.sh"
-echo "  Check what's ready:      ./check_sync_status.sh"
+echo "  Submit new sync:         $REPO_ROOT/sync/rclone_to_gdrive.sh"
+echo "  Check what's ready:      $REPO_ROOT/monitoring/check_sync_status.sh"

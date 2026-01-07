@@ -1,12 +1,16 @@
 #!/bin/bash
 
 # sync_all.sh - Complete AlphaFold3 sync workflow orchestrator
-# 
+#
 # This script runs the complete parallel sync workflow:
 # 1. Submits parallel rsync, MSA archiving, and seed compression jobs
 # 2. Submits Google Drive sync job for outputs, scripts, and analysis
-# 
+#
 # All operations run on compute nodes via SLURM - no login node blocking.
+
+# Script location handling - supports being called from repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Colors
 GREEN='\033[0;32m'
@@ -86,7 +90,7 @@ echo "  • MSA archiving (deduplicated archives)"
 echo "  • Seed compression (compress seed directories)"
 echo
 
-./sync_organize_outputs.sh $SYNC_OPTS
+"$SCRIPT_DIR/sync_organize_outputs.sh" $SYNC_OPTS
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to submit local sync jobs${NC}"
@@ -119,7 +123,7 @@ else
     echo "  • All organized output data"
     echo
 
-    ./rclone_to_gdrive.sh
+    "$SCRIPT_DIR/rclone_to_gdrive.sh"
 
     if [ $? -ne 0 ]; then
         echo -e "${RED}Failed to submit Google Drive sync job${NC}"

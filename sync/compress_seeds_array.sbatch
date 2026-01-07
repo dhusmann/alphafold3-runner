@@ -20,7 +20,9 @@ set -euo pipefail
 # Configuration
 BASE_DIR="/scratch/groups/ogozani/alphafold3"
 OUTPUT_DIR="${BASE_DIR}/output"
-SCRIPT_PATH="${BASE_DIR}/compress_seeds.sh"
+# REPO_ROOT should be passed via environment, or use default
+REPO_ROOT="${REPO_ROOT:-/scratch/users/dhusmann/alphafold3/alphafold3-runner}"
+SCRIPT_PATH="${REPO_ROOT}/utils/compress_seeds.sh"
 LOG_DIR="${BASE_DIR}/logs"
 
 # Create logs directory

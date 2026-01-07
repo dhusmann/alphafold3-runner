@@ -18,7 +18,15 @@ CYCLE_LENGTH=1
 # Set base directory
 BASE_DIR="/scratch/groups/ogozani/alphafold3"
 cd "$BASE_DIR"
-SUBMIT_SCRIPT="submit_dist.sh"
+
+# Set up script paths relative to repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
+SUBMIT_SCRIPT="${REPO_ROOT}/core/submit_dist.sh"
+CYCLE_SCRIPT="${REPO_ROOT}/core/af3_48hr_cycle.sh"
+MSA_ARRAYS_SCRIPT="${REPO_ROOT}/core/submit_msa_arrays.sh"
+BATCH_REUSE_SCRIPT="${REPO_ROOT}/core/batch_reuse_msa.py"
 CYCLE_NUM=${1:-1}  # Get cycle number from command line argument, default to 1
 
 # Check if we're running as a SLURM job or directly
@@ -46,7 +54,7 @@ if [ "$CYCLE_NUM" -eq 1 ] && [ ! -f "$SUBMIT_SCRIPT" ]; then
 fi
 
 # Make sure required scripts are executable
-chmod +x "$SUBMIT_SCRIPT" submit_msa_arrays.sh batch_reuse_msa.py 2>/dev/null
+chmod +x "$SUBMIT_SCRIPT" "$MSA_ARRAYS_SCRIPT" "$BATCH_REUSE_SCRIPT" 2>/dev/null
 
 # Load python module for batch_reuse_msa.py
 ml python/3.12.1 2>/dev/null || module load python/3.12.1 2>/dev/null || true
@@ -59,7 +67,7 @@ if [ "$CYCLE_NUM" -eq 1 ] && [ "$RUNNING_MODE" = "slurm" ]; then
     
     # Run batch_reuse_msa.py to identify MSA needs
     echo "Running batch_reuse_msa.py to analyze MSA requirements..."
-    ./batch_reuse_msa.py
+    "$BATCH_REUSE_SCRIPT"
     
     if [ $? -eq 0 ]; then
         # Check if there are MSA jobs to submit
@@ -70,8 +78,8 @@ if [ "$CYCLE_NUM" -eq 1 ] && [ "$RUNNING_MODE" = "slurm" ]; then
                 echo ""
                 echo "Found $MSA_COUNT jobs requiring MSA generation"
                 echo "Submitting MSA array jobs..."
-                
-                ./submit_msa_arrays.sh msa_array_jobs.csv
+
+                "$MSA_ARRAYS_SCRIPT" msa_array_jobs.csv
                 
                 if [ $? -eq 0 ]; then
                     echo "MSA array jobs submitted successfully"
@@ -90,32 +98,32 @@ if [ "$CYCLE_NUM" -eq 1 ] && [ "$RUNNING_MODE" = "slurm" ]; then
                         # Run submit_dist.sh as normal
                         echo ""
                         echo "Proceeding with GPU job submission..."
-                        ./${SUBMIT_SCRIPT}
+                        "$SUBMIT_SCRIPT"
                     fi
                 else
                     echo "ERROR: Failed to submit MSA array jobs"
                     echo "Continuing with GPU submission anyway..."
-                    ./${SUBMIT_SCRIPT}
+                    "$SUBMIT_SCRIPT"
                 fi
             else
                 echo "No MSA jobs to submit (all MSAs already exist)"
                 echo "Proceeding with GPU job submission..."
-                ./${SUBMIT_SCRIPT}
+                "$SUBMIT_SCRIPT"
             fi
         else
             echo "No msa_array_jobs.csv file created"
             echo "Proceeding with GPU job submission..."
-            ./${SUBMIT_SCRIPT}
+            "$SUBMIT_SCRIPT"
         fi
     else
         echo "WARNING: batch_reuse_msa.py failed"
         echo "Proceeding with GPU job submission anyway..."
-        ./${SUBMIT_SCRIPT}
+        "$SUBMIT_SCRIPT"
     fi
 else
     # For cycles 2-48, just run submit_dist.sh normally
     echo "Executing: $SUBMIT_SCRIPT"
-    ./${SUBMIT_SCRIPT}
+    "$SUBMIT_SCRIPT"
 fi
 
 # Check the exit status
@@ -137,7 +145,7 @@ if [ "$CYCLE_NUM" -lt "$TOTAL_CYCLES" ]; then
     
     # Submit next job with delayed start from the base directory
     cd "$BASE_DIR"
-    NEXT_JOBID=$(sbatch --begin="$START_TIME" --export=ALL af3_48hr_cycle.sh $NEXT_CYCLE | awk '{print $4}')
+    NEXT_JOBID=$(sbatch --begin="$START_TIME" --export=ALL "$CYCLE_SCRIPT" $NEXT_CYCLE | awk '{print $4}')
     
     if [ $? -eq 0 ]; then
         echo "Next cycle submitted successfully with job ID: $NEXT_JOBID"

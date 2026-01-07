@@ -3,6 +3,10 @@
 # rclone_to_gdrive.sh - Submit rclone sync job to SLURM
 # This script submits an sbatch job to sync organized outputs to Google Drive
 
+# Script location handling - supports being called from repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Colors for output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -159,15 +163,15 @@ MAIL_END
     # Schedule a new job for 24 hours later
     echo "Scheduling retry in 24 hours..."
     
-    # Create retry script
+    # Create retry script - use SYNC_SCRIPT_DIR for sync script location
+    RCLONE_SCRIPT="${SYNC_SCRIPT_DIR}/rclone_to_gdrive.sh"
     cat > "${BASE_DIR}/rclone_retry.sh" << RETRY_SCRIPT
 #!/bin/bash
-cd "$BASE_DIR"
-./rclone_to_gdrive.sh
+"$RCLONE_SCRIPT"
 RETRY_SCRIPT
-    
+
     chmod +x "${BASE_DIR}/rclone_retry.sh"
-    
+
     # Submit with 24 hour delay
     sbatch $SBATCH_EXTRA_ARGS --begin=now+24hours --job-name=SyncAF3_Retry "${BASE_DIR}/rclone_retry.sh"
     
@@ -204,6 +208,7 @@ export SYNC_OUTPUT_DIR="$OUTPUT_DIR"
 export SYNC_GDRIVE_REMOTE="$GDRIVE_REMOTE"
 export SYNC_GDRIVE_PATH="$GDRIVE_PATH"
 export SYNC_BASE_DIR="$BASE_DIR"
+export SYNC_SCRIPT_DIR="$SCRIPT_DIR"
 export SBATCH_EXTRA_ARGS
 
 # Submit the job

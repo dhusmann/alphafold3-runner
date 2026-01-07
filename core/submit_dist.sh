@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Set up script paths relative to repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
+SUBMIT_GPU_SCRIPT="${REPO_ROOT}/core/submit_gpu.sh"
+BATCH_REUSE_SCRIPT="${REPO_ROOT}/core/batch_reuse_msa.py"
+
 # Default values
 MAX_GPU_JOBS=50
 MAX_HNS_JOBS=50
@@ -63,13 +70,13 @@ fi
 ml python/3.9.0 2>/dev/null || module load python/3.9.0 2>/dev/null || true
 
 # Run batch_reuse_msa.py
-if [ -f "batch_reuse_msa.py" ]; then
-    python batch_reuse_msa.py
+if [ -f "$BATCH_REUSE_SCRIPT" ]; then
+    python "$BATCH_REUSE_SCRIPT"
     if [ $? -ne 0 ]; then
         echo "Warning: batch_reuse_msa.py failed, continuing with existing files"
     fi
 else
-    echo "Warning: batch_reuse_msa.py not found, skipping MSA reuse"
+    echo "Warning: batch_reuse_msa.py not found at $BATCH_REUSE_SCRIPT, skipping MSA reuse"
 fi
 
 echo ""
@@ -291,9 +298,9 @@ process_job() {
     echo "Submitting GPU job for: $folder_name (partition: $PARTITION)"
     # For single-protein-ligand jobs, allocate more CPUs and time since we run data pipeline
     if [ "$SINGLE" = "1" ]; then
-        SBATCH_OUTPUT=$(sbatch -p "$PARTITION" -c 12 --time=08:00:00 submit_gpu.sh "$folder_name" 2>&1)
+        SBATCH_OUTPUT=$(sbatch -p "$PARTITION" -c 12 --time=08:00:00 "$SUBMIT_GPU_SCRIPT" "$folder_name" 2>&1)
     else
-        SBATCH_OUTPUT=$(sbatch -p "$PARTITION" submit_gpu.sh "$folder_name" 2>&1)
+        SBATCH_OUTPUT=$(sbatch -p "$PARTITION" "$SUBMIT_GPU_SCRIPT" "$folder_name" 2>&1)
     fi
     
     if [ $? -eq 0 ]; then

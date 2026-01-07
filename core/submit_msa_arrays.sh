@@ -3,11 +3,14 @@
 # Script to submit MSA jobs as SLURM arrays from CSV file
 # Splits jobs between hns and normal partitions for better parallelization
 
+# Set up script paths relative to repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Configuration
 AF3_BASE_DIR="/scratch/groups/ogozani/alphafold3"
 CSV_FILE="${1:-msa_array_jobs.csv}"
 MAX_ARRAY_SIZE=1000
-SCRIPT_DIR="$(dirname "$0")"
 
 # Colors for output
 RED='\033[0;31m'
@@ -26,7 +29,7 @@ if [ ! -f "$CSV_FILE" ]; then
 fi
 
 # Check if array submission script exists
-ARRAY_SCRIPT="${SCRIPT_DIR}/submit_msa_array.sh"
+ARRAY_SCRIPT="${REPO_ROOT}/core/submit_msa_array.sh"
 if [ ! -f "$ARRAY_SCRIPT" ]; then
     echo -e "${RED}Error: Array submission script not found: $ARRAY_SCRIPT${NC}"
     exit 1

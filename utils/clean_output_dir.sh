@@ -3,6 +3,10 @@
 # clean_output_dir.sh - Clean up the output directory
 # Useful for starting fresh or removing old syncs
 
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Colors
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
@@ -60,7 +64,7 @@ if [ "$REPLY" = "yes" ]; then
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Output directory removed successfully${NC}"
         echo
-        echo "You can now run sync_organize_outputs.sh to create a fresh sync"
+        echo "You can now run $REPO_ROOT/sync/sync_organize_outputs.sh to create a fresh sync"
     else
         echo -e "${RED}Failed to remove output directory${NC}"
         echo "Check permissions and try again"

@@ -3,6 +3,10 @@
 # check_sync_status.sh - Check which outputs are ready to sync
 # Shows what would be synced without actually doing it
 
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -83,8 +87,8 @@ if [ -d "${BASE_DIR}/output" ]; then
     fi
 else
     echo "Output directory does not exist yet"
-    echo "Run sync_organize_outputs.sh to create and populate it"
+    echo "Run $REPO_ROOT/sync/sync_organize_outputs.sh to create and populate it"
 fi
 
 echo
-echo "Next step: ./sync_organize_outputs.sh"
+echo "Next step: $REPO_ROOT/sync/sync_organize_outputs.sh"

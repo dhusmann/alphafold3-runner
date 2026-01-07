@@ -3,6 +3,10 @@
 # get_job_status_detailed.sh - Extended job status report with export options
 # Additional features: export to CSV, filter by stage, check specific seeds
 
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

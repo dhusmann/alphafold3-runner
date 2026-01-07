@@ -3,6 +3,10 @@
 # pipeline_summary.sh - Complete pipeline summary including sync status
 # Provides a comprehensive overview of the entire pipeline state
 
+# Get script location and repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -132,7 +136,7 @@ fi
 if command -v rclone &> /dev/null && rclone listremotes | grep -q "^gdrive:$"; then
     echo -e "   ${GREEN}✓ Rclone configured${NC}"
 else
-    echo -e "   ${YELLOW}✗ Rclone not configured${NC} (run ./setup_rclone_gdrive.sh)"
+    echo -e "   ${YELLOW}✗ Rclone not configured${NC} (run $REPO_ROOT/tools/setup_rclone_gdrive.sh)"
 fi
 echo
 
@@ -156,23 +160,23 @@ echo
 echo -e "${BOLD}6. Recommended Next Steps${NC}"
 
 if [ $CYCLE_JOBS -eq 0 ] && [ $READY_COUNT -eq 0 ]; then
-    echo "   → Start pipeline: ./launch_af3.sh"
+    echo "   → Start pipeline: $REPO_ROOT/core/launch_af3.sh"
 elif [ $READY_COUNT -gt 10 ]; then
-    echo "   → Sync outputs: ./sync_all.sh"
-    echo "   → Check details: ./get_job_status.sh"
+    echo "   → Sync outputs: $REPO_ROOT/sync/sync_all.sh"
+    echo "   → Check details: $REPO_ROOT/monitoring/get_job_status.sh"
 elif [ $GPU_RUNNING -eq 0 ] && [ $STAGE2 -gt 0 ]; then
-    echo "   → Submit GPU jobs: ./submit_dist.sh"
+    echo "   → Submit GPU jobs: $REPO_ROOT/core/submit_dist.sh"
 fi
 
 if [ $MSA_RUNNING -eq 0 ] && [ -f "msa_array_jobs.csv" ]; then
     MSA_TODO=$(tail -n +2 msa_array_jobs.csv | grep -v "^$" | wc -l)
     if [ $MSA_TODO -gt 0 ]; then
-        echo "   → Submit MSA jobs: ./submit_msa_arrays.sh"
+        echo "   → Submit MSA jobs: $REPO_ROOT/core/submit_msa_arrays.sh"
     fi
 fi
 
 echo
 echo -e "${CYAN}For detailed information, use:${NC}"
-echo "   ./get_job_status.sh -v      # Detailed job status"
-echo "   ./check_sync_status.sh      # Sync readiness"
-echo "   ./monitor_msa_arrays.sh     # MSA job details"
+echo "   $REPO_ROOT/monitoring/get_job_status.sh -v      # Detailed job status"
+echo "   $REPO_ROOT/monitoring/check_sync_status.sh      # Sync readiness"
+echo "   $REPO_ROOT/monitoring/monitor_msa_arrays.sh     # MSA job details"
