@@ -1,0 +1,31 @@
+# Runtime state files
+*.csv
+*.log
+*.out
+*.err
+*.tmp
+*.lastlog
+
+# Data directories (not in repo)
+jobs/
+output/
+logs/
+analysis/
+
+# Temporary/generated files
+rclone_sync_job.sh
+rclone_output.tmp
+
+# Backup files
+*.backup
+
+# Job-specific text files (runtime state)
+*_jobs.txt
+*_deleted_*.txt
+*_missing_*.txt
+*_recovered_*.txt
+*_errors.txt
+*_skipped_*.txt
+
+# Configuration files with sensitive paths (template should be in repo)
+sync_parallel.conf
