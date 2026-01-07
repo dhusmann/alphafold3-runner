@@ -1,44 +1,49 @@
 # AlphaFold3 Pipeline Scripts Summary
 
-## Complete Script List (Total: 28 scripts)
+## Complete Script List (Total: 31 scripts)
+
+### Query Creation Scripts (4)
+1. **createAF3query.sh** - Creates AF3 job directories with alphafold_input.json
+2. **createAF3query_withSMILES.sh** - Creates jobs with SMILES ligand definitions
+3. **createHTS-AF3query.sh** - Creates human test set queries
+4. **createBatchAF3queries.sh** - Batch wrapper for createAF3query.sh
 
 ### Core Pipeline Scripts (7)
-1. **batch_reuse_msa.py** - Identifies and reuses existing MSAs
-2. **submit_msa_arrays.sh** - Distributes MSA jobs across partitions
-3. **submit_msa_array.sh** - Runs individual MSA generation
-4. **submit_dist.sh** - Manages GPU job distribution
-5. **submit_gpu.sh** - Runs individual GPU inference
-6. **launch_af3.sh** - Starts 48-hour automation
-7. **af3_48hr_cycle.sh** - Handles periodic execution
+5. **batch_reuse_msa.py** - Identifies and reuses existing MSAs
+6. **submit_msa_arrays.sh** - Distributes MSA jobs across partitions
+7. **submit_msa_array.sh** - Runs individual MSA generation
+8. **submit_dist.sh** - Manages GPU job distribution
+9. **submit_gpu.sh** - Runs individual GPU inference
+10. **launch_af3.sh** - Starts 48-hour automation
+11. **af3_48hr_cycle.sh** - Handles periodic execution
 
 ### Monitoring Scripts (5)
-8. **monitor_msa_arrays.sh** - Monitors MSA array jobs
-9. **get_job_status.sh** - Reports job stages and seeds
-10. **get_job_status_detailed.sh** - Advanced status with filters
-11. **pipeline_status.sh** - Quick dashboard view
-12. **pipeline_summary.sh** - Complete pipeline overview with sync status
+12. **monitor_msa_arrays.sh** - Monitors MSA array jobs
+13. **get_job_status.sh** - Reports job stages and seeds
+14. **get_job_status_detailed.sh** - Advanced status with filters
+15. **pipeline_status.sh** - Quick dashboard view
+16. **pipeline_summary.sh** - Complete pipeline overview with sync status
 
 ### Output Sync Scripts (6)
-13. **sync_organize_outputs.sh** - Syncs and organizes outputs locally
-14. **rclone_to_gdrive.sh** - Submits SLURM job for Google Drive upload
-15. **check_sync_status.sh** - Shows sync readiness
-16. **sync_all.sh** - Complete sync workflow
-17. **check_rclone_status.sh** - Monitor rclone SLURM jobs
-18. **clean_output_dir.sh** - Cleans output directory
+17. **sync_organize_outputs.sh** - Syncs and organizes outputs locally
+18. **rclone_to_gdrive.sh** - Submits SLURM job for Google Drive upload
+19. **check_sync_status.sh** - Shows sync readiness
+20. **sync_all.sh** - Complete sync workflow
+21. **check_rclone_status.sh** - Monitor rclone SLURM jobs
+22. **clean_output_dir.sh** - Cleans output directory
 
-### Utility Scripts (4)
-19. **cleanup_msa_tmp.sh** - Removes temporary MSA files
-20. **pipeline_quickstart.sh** - Validates setup
-21. **test_seed_detection.sh** - Tests seed completion detection
-22. **test_rclone_quota.sh** - Tests quota error handling (optional)
+### Utility Scripts (3)
+23. **cleanup_msa_tmp.sh** - Removes temporary MSA files
+24. **pipeline_quickstart.sh** - Validates setup
+25. **compress_seeds.sh** - Manual seed compression utility
 
-### Helper Tools (Singles & maintenance) (6)
-23. **tools/find_single_enzyme_ligand_jobs.py** - Identify single-protein–ligand jobs
-24. **tools/clear_output_msa_jsons.py** - Remove `output_msa/*.json` for singles
-25. **tools/restore_jobs_to_csv.py** - Merge verified singles into `folding_jobs.csv`
-26. **tools/unixify_newlines.py** - Normalize CSVs to LF newlines
-27. **tools/remove_outputs_from_list.py** - Delete `jobs/<name>/output` for a list
-28. **tools/restore_jobs_from_list.py** - Add a list of jobs back to CSV
+### Helper Tools (6)
+26. **tools/find_single_enzyme_ligand_jobs.py** - Identify single-protein–ligand jobs
+27. **tools/clear_output_msa_jsons.py** - Remove `output_msa/*.json` for singles
+28. **tools/restore_jobs_to_csv.py** - Merge verified singles into `folding_jobs.csv`
+29. **tools/unixify_newlines.py** - Normalize CSVs to LF newlines
+30. **tools/remove_outputs_from_list.py** - Delete `jobs/<name>/output` for a list
+31. **tools/restore_jobs_from_list.py** - Add a list of jobs back to CSV
 
 ## Quick Setup
 
@@ -52,14 +57,22 @@ chmod +x *.sh *.py
 
 ## Typical Workflow
 
-1. **Start pipeline**: `./launch_af3.sh`
-2. **Monitor progress**: `./pipeline_status.sh`
-3. **Check job details**: `./get_job_status.sh`
-4. **Sync outputs**: `./sync_all.sh`
+1. **Create jobs**: `./createAF3query.sh enzyme.fa substrate.fa --ptm 2 43 me1 --lig SAH`
+2. **Populate queue**: Add job names to `folding_jobs.csv`
+3. **Start pipeline**: `./launch_af3.sh`
+4. **Monitor progress**: `./pipeline_status.sh`
+5. **Check job details**: `./get_job_status.sh`
+6. **Sync outputs**: `./sync_all.sh`
 
 ## Script Categories by Function
 
-### Starting Jobs
+### Creating Jobs
+- `createAF3query.sh` - Single job creation
+- `createAF3query_withSMILES.sh` - Jobs with SMILES ligands
+- `createHTS-AF3query.sh` - Human test set jobs
+- `createBatchAF3queries.sh` - Batch job creation
+
+### Starting Pipeline
 - `launch_af3.sh` → `af3_48hr_cycle.sh` → `submit_dist.sh`
 - `submit_msa_arrays.sh` → `submit_msa_array.sh`
 - `submit_gpu.sh`

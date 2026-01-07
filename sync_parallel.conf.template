@@ -1,0 +1,37 @@
+# AlphaFold3 Pipeline - Parallel Sync Configuration
+# Copy this file to sync_parallel.conf and adjust values as needed
+#
+# Used by: sync_organize_outputs.sh, sync_organize_rsync.sbatch, sync_job_discovery.sh
+
+# Jobs processed per SLURM array task
+# Higher = fewer array tasks, but each task runs longer
+# Lower = more parallelism, but more overhead
+JOBS_PER_TASK=500
+
+# Maximum concurrent SLURM array tasks
+# Adjust based on cluster fairshare and available resources
+MAX_ARRAY_TASKS=20
+
+# Number of concurrent rsync processes per array task
+# Each rsync handles one job directory
+# Total parallelism = MAX_ARRAY_TASKS * PARALLEL_WORKERS
+PARALLEL_WORKERS=16
+
+# =============================================================================
+# Example configurations:
+# =============================================================================
+#
+# High-throughput (large clusters, many jobs):
+#   JOBS_PER_TASK=1000
+#   MAX_ARRAY_TASKS=50
+#   PARALLEL_WORKERS=32
+#
+# Conservative (shared clusters, limited resources):
+#   JOBS_PER_TASK=200
+#   MAX_ARRAY_TASKS=5
+#   PARALLEL_WORKERS=4
+#
+# Default (balanced):
+#   JOBS_PER_TASK=500
+#   MAX_ARRAY_TASKS=20
+#   PARALLEL_WORKERS=16
